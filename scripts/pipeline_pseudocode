@@ -1,0 +1,47 @@
+#PSEUDOCODE FOR ECOLI VARIANT CALLING PIPELINE 
+
+#This is the pseudocode/outline for the pipeline steps. 
+#It is meant as a refernce for the general layout, and simply states the steps
+ 
+
+#The reference genome is downloaded using "wget"
+REF = "ecoli_ref.fna"
+
+#The raw reads are downloaded using "prefetch" 
+#from the NCBI Database
+
+#They are then converted into FASTQ files using "fasterq-dump" 
+read1 = "SRR2584857_1.fastq"
+read2 = "SRR258457_2.fastq"
+
+#The reference genome is indexed for both bwa alignment
+#and samtools alignment file processing.
+bwa index $REF 
+samtools faidx $REF
+
+#The reads are aligned to the genome
+bwa mem -t 4 $REF read1 read2
+
+#The outputted SAM file is converted into a BAM file
+SAM = "ecoli_aligned_reads.sam"
+BAM ="ecoli_aligned_reads.bam"
+SORTED_BAM = "ecoli_aligned_reads.sorted.bam"
+
+samtools view $SAM
+samtools sort $BAM
+samtools index $SORTED_BAM
+
+#Use bcftools to generate pileup output 
+PILEUP = "ecoli.pileup.bcf"
+bcftools mpileup -f $REF $SORTED_BAM -o $PILEUP
+
+#Use bcftools to call actual variants
+VARIAMTS = "ecoli_variants.vcf"
+bcftools call -mv -o $VARIANTS $PILEUP
+
+#END OF FIRST DRAFT/PSEUDOCODE
+
+
+
+
+
